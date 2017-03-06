@@ -1,0 +1,12 @@
+
+
+
+function forceAnalysisPro
+
+clear all; clc; close all;
+    
+    traces_file = 'offset.txt';
+        motors_file = 'offset_motors.txt';
+        output_name = 'FX_offsets.txt';
+        Nref = 1;
+end
