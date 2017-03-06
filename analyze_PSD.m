@@ -50,15 +50,19 @@ fcorner = abs(fcorner);
 Lorentzianfit =  (Amp*(1+(f/fcorner).^(2)).^(-1));
 [i ii] = min(abs(f-fcorner));
 
-PSD2modelTest = analytical_PSD2_overdamped_bead(MLforce,fs,f,mean_z,1400);
+%PSD2modelTest = analytical_PSD2_overdamped_bead(MLforce,fs,f,mean_z,1400);
 
-freq = 1:length(PSD);
 figure;
+loglog(f(goodinds),PSD(goodinds),'r-');
 hold on
-loglog(freq(goodinds),PSD(goodinds),'r-');
-loglog(freq(goodinds),PSDmodel(goodinds),'b-');
-loglog(freq(goodinds),Lorentzianfit(goodinds),'g-');
-loglog(freq(goodinds),PSD2modelTest(goodinds),'y-');
+loglog(f(goodinds),PSDmodel(goodinds),'b-');
+loglog(f(goodinds),Lorentzianfit(goodinds),'g-');
+%loglog(freq(goodinds),PSD2modelTest(goodinds),'y-');
+
+title('Fitting in y direction using Zhongbo Yus method');
+xlabel('freq (Hz)');
+ylabel('Power Spectrum (nm^2/Hz)')
+legend('Power spectrum', 'PSDfit', 'Lorentzianfit');
 hold off
 %pause;
 

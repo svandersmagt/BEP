@@ -1,4 +1,4 @@
-function [Ext, Fx_real, Fy_real, PSDfit, PSDforce, fcorner, MLfit, MLforce, Rfit] = analyze_one_trace2(time, x, y, z, fs, R)
+function [Ext, Fx_real, Fy_real, PSDfit, PSDforce, fcorner, MLfitx, MLforcex, Rfitx, MLfity, MLforcey, Rfity] = analyze_one_trace2(time, x, y, z, fs, R)
 %
 % Function to analyze magnetic tweezers time traces
 %
@@ -18,7 +18,7 @@ foo = 1;
 %%% Global, "hard-coded" variables
 binWidth_XY = 0.01; % in mum
 binWidth_Z  = 0.01; % in mum
-kT = 4/1000;
+kT = 4.1/1000;
 
 %%% Analyze the real space fluctuations
 mean_x = mean(x);
@@ -38,7 +38,8 @@ Ext = mean_z;
 %%% The third method is that by te Velthuis et al. (Bioph J 2010)
 
     [PSDfit, PSDforce, fcorner] = analyze_PSD(fs,mean_z,y);
-    [MLfit, MLforce, Rfit] = analyze_PSD2(fs,mean_z,x,R);
+    [MLfitx, MLforcex, Rfitx] = analyze_PSD2(fs,mean_z,x,R);
+    [MLfity, MLforcey, Rfity] = analyze_PSD3(fs,mean_z,y,R);
 
 
 if 0;

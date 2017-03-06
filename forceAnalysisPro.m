@@ -346,7 +346,7 @@ if 1
                 bead(i).PSD2force(k) = MLforce;
                 bead(i).Rfit(k) = Rfit;
                 
-                pause; %
+                pause;
             end
         end
     end
