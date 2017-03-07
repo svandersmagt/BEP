@@ -22,15 +22,15 @@ fMin = (Fmag/L*((L+R)*R/(2*alphaPhi) + 1/(2*alphaX) - 1/2*(((L+R)*R/alphaPhi + 1
 C = 2*pi*fPlus*L/Fmag - (L+R)*R/alphaPhi; %a constant used in Daldrop eq(15)
 
 PSD1 = 4*kT/((2*pi)^2*(1+C^2*alphaX*alphaPhi/(R^2))); %first line of the analytical formula
-PSD2 = zeros(length(f),1);
-PSD3 = zeros(length(f),1);
+PSD4 = zeros(length(f),1);
 for n=[-1 0];
-    PSD2 = PSD2 + alphaPhi*C^2./(R^2)*1./(fPlus^2+abs(f+n*fs).^2) + 1./alphaX*1./(fMin^2+abs(f+n*fs).^2); %second line
-    PSD3 = PSD3 + ((sin(pi/fs*abs(f+n*fs))).^2)./(pi/fs*abs(f+n*fs)).^2;
+    PSD2 = alphaPhi*C^2./(R^2)*1./(fPlus^2+abs(f+n*fs).^2) + 1./alphaX*1./(fMin^2+abs(f+n*fs).^2); %second line
+    PSD3 = ((sin(pi/fs*abs(f+n*fs))).^2)./(pi/fs*abs(f+n*fs)).^2;
+    PSD4 = PSD4 + PSD2.*PSD3;
 end
 
 
 
-PSD2model = PSD1*(PSD2.*PSD3); %Daldrop eq (S13)
+PSD2model = PSD1*PSD4/2; %Daldrop eq (S13)
 
 end

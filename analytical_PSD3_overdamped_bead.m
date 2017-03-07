@@ -20,15 +20,15 @@ kappa = Fmag/L;
 fc = kappa/(2*pi*alphaY);
 
 PSD1 = 4*kT*alphaY/(kappa)^2;
-PSD2 = zeros(length(f),1);
-PSD3 = zeros(length(f),1);
+PSD4 = zeros(length(f),1);
 for n=[-1 0];
-    PSD2 = PSD2 + 1./(1+(abs(f+n*fs)./fc).^2);
-    PSD3 = PSD3 + ((sin(pi/fs*abs(f+n*fs))).^2)./(pi/fs*abs(f+n*fs)).^2;
+    PSD2 = 1./(1+(abs(f+n*fs)./fc).^2);
+    PSD3 = ((sin(pi/fs*abs(f+n*fs))).^2)./(pi/fs*abs(f+n*fs)).^2;
+    PSD4 = PSD4 + PSD2.*PSD3;
 end
 
 
 
-PSD3model = PSD1*(PSD2.*PSD3); %Daldrop eq (S13)
+PSD3model = PSD1*PSD4/2; %Daldrop eq (S13)
 
 end

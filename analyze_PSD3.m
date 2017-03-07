@@ -52,7 +52,7 @@ loglog(f(goodinds),PSDmodel(goodinds),'b-');
 
 title('Fitting in y direction using Daldrops method');
 xlabel('freq (Hz)');
-ylabel('Power Spectrum (nm^2/Hz)')
+ylabel('Power Spectrum (nm^2/Hz)');
 legend('Power spectrum', 'PSD3fit');
 hold off
 %pause;

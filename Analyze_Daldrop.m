@@ -84,7 +84,7 @@ if 1
                 freq, Rbead);
 
             display(['Finished working on bead # ' num2str(i)])
-            bead(i).ext = Ext;
+            bead(i).ext = Ext*1000;
             bead(i).Fx_real = Fx_real;
             bead(i).Fy_real = Fy_real;
             PSDfit = PSDfit;
@@ -98,15 +98,23 @@ if 1
             bead(i).Rfity = Rfity;
             
             
-            %calculate fc
+            %calculate fc for y direction, just to check
             kT = 4.1; %pN nm
             eta = 9.2E-10; %viscosity in pN s/nm^2
-            Cpar = (1-9/16*(1+Ext/Rfity)^(-1)+1/8*(1+Ext/Rfity)^(-3)-45/256*(1+Ext/Rfity)^(-4)-1/16*(1+Ext/Rfity)^(-5))^(-1); %Daldrop eq(S10)
-            Crot = 1 + 5/16*(1+Ext/Rfity)^(-3); %Daldrop eq(S12)
+            Cpar = (1-9/16*(1+(Ext*1000)/Rfity)^(-1)+1/8*(1+(Ext*1000)/Rfity)^(-3)-45/256*(1+(Ext*1000)/Rfity)^(-4)-1/16*(1+(Ext*1000)/Rfity)^(-5))^(-1); %Daldrop eq(S10)
             alphaY = 6*pi*eta*Rfity*Cpar; %Daldrop eq(11)
-            kappa = MLforcey/Ext;
+            kappa = MLforcey/(Ext*1000);
 
             fc = kappa/(2*pi*alphaY);
+            
+            %calculate fmin and fplus for x direction, also to check
+            Cpar = (1-9/16*(1+(Ext*1000)/Rfitx)^(-1)+1/8*(1+(Ext*1000)/Rfitx)^(-3)-45/256*(1+(Ext*1000)/Rfitx)^(-4)-1/16*(1+(Ext*1000)/Rfitx)^(-5))^(-1); %Daldrop eq(S10)
+            Crot = 1 + 5/16*(1+(Ext*1000)/Rfitx)^(-3);
+            alphaX = 6*pi*eta*Rfitx*Cpar + 8*pi*eta*Rfitx*Crot/(1+Ext*1000/Rfitx)^2; %Daldrop eq(11)
+            alphaPhi = 8*pi*eta*Rfitx^3*Crot; %Daldrop eq(11)
+                        
+            fPlus = (MLforcex/(Ext*1000)*((Ext*1000+Rfitx)*Rfitx/(2*alphaPhi) + 1/(2*alphaX) + 1/2*(((Ext*1000+Rfitx)*Rfitx/alphaPhi + 1/alphaX)^2-4*Ext*1000*Rfitx/(alphaX*alphaPhi))^(1/2)))/(2*pi);
+            fMin = (MLforcex/(Ext*1000)*((Ext*1000+Rfitx)*Rfitx/(2*alphaPhi) + 1/(2*alphaX) - 1/2*(((Ext*1000+Rfitx)*Rfitx/alphaPhi + 1/alphaX)^2-4*Ext*1000*Rfitx/(alphaX*alphaPhi))^(1/2)))/(2*pi);
         end
     end
 end
