@@ -1,4 +1,4 @@
-function PSD3model = analytical_PSD3_overdamped_bead(Fmag,fs,f,L,R)
+function PSD3model = analytical_PSD3_overdamped_bead(Fmag,fs,f,L,R,kT,eta)
 % Calculates the theoretical Power Spectral Density for Brownian motion
 % in a harmonic well (Daldrop 2015)
 % Input: alphaX in pN s/nm (number)
@@ -10,16 +10,13 @@ function PSD3model = analytical_PSD3_overdamped_bead(Fmag,fs,f,L,R)
 %        R in nm (number)
 % Output: PSD2model in nm^2/Hz (vector)
 
-kT = 4.1; %pN nm
-eta = 9.2E-10; %viscosity in pN s/nm^2
 Cpar = (1-9/16*(1+L/R)^(-1)+1/8*(1+L/R)^(-3)-45/256*(1+L/R)^(-4)-1/16*(1+L/R)^(-5))^(-1); %Daldrop eq(S10)
-Crot = 1 + 5/16*(1+L/R)^(-3); %Daldrop eq(S12)
-alphaY = 6*pi*eta*R*Cpar; %Daldrop eq(11)
+alphaY = 6*pi*eta*R*Cpar; %Daldrop eq(6)
 kappa = Fmag/L;
 
 fc = kappa/(2*pi*alphaY);
 
-PSD1 = 4*kT*alphaY/(kappa)^2;
+PSD1 = 4*kT*alphaY/(kappa)^2; %Daldrop eq(5)
 PSD4 = zeros(length(f),1);
 for n=[-1 0];
     PSD2 = 1./(1+(abs(f+n*fs)./fc).^2);
@@ -29,6 +26,6 @@ end
 
 
 
-PSD3model = PSD1*PSD4/2; %Daldrop eq (S13)
+PSD3model = PSD1*PSD4/2; %Daldrop eq (5)
 
 end

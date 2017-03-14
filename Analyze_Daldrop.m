@@ -20,10 +20,16 @@
     %%% Date: 2013-09-16
     
     clear all; clc; close all;
-
+    
+    %Datafile and aquisition frequency
     traces_file = 'DaldropData.txt';
     freq = 2800; %%% Acquisition frequency in Hz
-
+    
+    
+    %Constants 
+    kT = 4.1; %pN nm
+    eta = 10E-10; %viscosity in pN s/nm^2
+    Rbead = 515; % Bead radius in nm
   
     %%%--- Read in data ---
     data = load(traces_file);    
@@ -33,9 +39,9 @@
     for i=1:Nbeads
         display(['Parsing data for bead ' num2str(i) ' of ' num2str(Nbeads)])
         bead(i).time = 1:length(data(:,1));
-        bead(i).x = data(:,1);
-        bead(i).y = data(:,2);
-        bead(i).z = data(:,3);
+        bead(i).x = data(:,1)*1000;
+        bead(i).y = data(:,2)*1000;
+        bead(i).z = data(:,3)*1000; %nm
         
     end
     
@@ -62,14 +68,6 @@ if 1
     
     clc;
     
-    plotflag = 0; %%% Whether or not to show the fits
-    
-    
-    %%% Some variables ----------------------------------------------
-    kT = 4.1;
-    Rbead = 0.515;      % Bead radius in mum
-     
-        
     %%% ------------------------------------------------------- %%%
     %%% Look over the beads and determine the force for each plateau
     %%% ------------------------------------------------------- %%%
@@ -81,10 +79,10 @@ if 1
                 bead(i).x,... 
                 bead(i).y,...
                 bead(i).z,...
-                freq, Rbead);
+                freq, Rbead, kT, eta);
 
             display(['Finished working on bead # ' num2str(i)])
-            bead(i).ext = Ext*1000;
+            bead(i).ext = Ext;
             bead(i).Fx_real = Fx_real;
             bead(i).Fy_real = Fy_real;
             PSDfit = PSDfit;
@@ -99,22 +97,25 @@ if 1
             
             
             %calculate fc for y direction, just to check
-            kT = 4.1; %pN nm
-            eta = 9.2E-10; %viscosity in pN s/nm^2
-            Cpar = (1-9/16*(1+(Ext*1000)/Rfity)^(-1)+1/8*(1+(Ext*1000)/Rfity)^(-3)-45/256*(1+(Ext*1000)/Rfity)^(-4)-1/16*(1+(Ext*1000)/Rfity)^(-5))^(-1); %Daldrop eq(S10)
+            Cpar = (1-9/16*(1+(Ext)/Rfity)^(-1)+1/8*(1+(Ext)/Rfity)^(-3)-45/256*(1+(Ext)/Rfity)^(-4)-1/16*(1+(Ext)/Rfity)^(-5))^(-1); %Daldrop eq(S10)
             alphaY = 6*pi*eta*Rfity*Cpar; %Daldrop eq(11)
-            kappa = MLforcey/(Ext*1000);
+            kappa = MLforcey/(Ext);
 
             fc = kappa/(2*pi*alphaY);
             
             %calculate fmin and fplus for x direction, also to check
-            Cpar = (1-9/16*(1+(Ext*1000)/Rfitx)^(-1)+1/8*(1+(Ext*1000)/Rfitx)^(-3)-45/256*(1+(Ext*1000)/Rfitx)^(-4)-1/16*(1+(Ext*1000)/Rfitx)^(-5))^(-1); %Daldrop eq(S10)
-            Crot = 1 + 5/16*(1+(Ext*1000)/Rfitx)^(-3);
-            alphaX = 6*pi*eta*Rfitx*Cpar + 8*pi*eta*Rfitx*Crot/(1+Ext*1000/Rfitx)^2; %Daldrop eq(11)
+            Cpar = (1-9/16*(1+(Ext)/Rfitx)^(-1)+1/8*(1+(Ext)/Rfitx)^(-3)-45/256*(1+(Ext)/Rfitx)^(-4)-1/16*(1+(Ext)/Rfitx)^(-5))^(-1); %Daldrop eq(S10)
+            Crot = 1 + 5/16*(1+(Ext)/Rfitx)^(-3);
+            alphaX = 6*pi*eta*Rfitx*Cpar + 8*pi*eta*Rfitx*Crot/(1+Ext/Rfitx)^2; %Daldrop eq(11)
             alphaPhi = 8*pi*eta*Rfitx^3*Crot; %Daldrop eq(11)
                         
-            fPlus = (MLforcex/(Ext*1000)*((Ext*1000+Rfitx)*Rfitx/(2*alphaPhi) + 1/(2*alphaX) + 1/2*(((Ext*1000+Rfitx)*Rfitx/alphaPhi + 1/alphaX)^2-4*Ext*1000*Rfitx/(alphaX*alphaPhi))^(1/2)))/(2*pi);
-            fMin = (MLforcex/(Ext*1000)*((Ext*1000+Rfitx)*Rfitx/(2*alphaPhi) + 1/(2*alphaX) - 1/2*(((Ext*1000+Rfitx)*Rfitx/alphaPhi + 1/alphaX)^2-4*Ext*1000*Rfitx/(alphaX*alphaPhi))^(1/2)))/(2*pi);
+            fPlus = (MLforcex/(Ext)*((Ext+Rfitx)*Rfitx/(2*alphaPhi) + 1/(2*alphaX) + 1/2*(((Ext+Rfitx)*Rfitx/alphaPhi + 1/alphaX)^2-4*Ext*Rfitx/(alphaX*alphaPhi))^(1/2)))/(2*pi);
+            fMin = (MLforcex/(Ext)*((Ext+Rfitx)*Rfitx/(2*alphaPhi) + 1/(2*alphaX) - 1/2*(((Ext+Rfitx)*Rfitx/alphaPhi + 1/alphaX)^2-4*Ext*Rfitx/(alphaX*alphaPhi))^(1/2)))/(2*pi);
+            display(['Zhongbo method: F = ' num2str(bead(1).PSDforce) 'pN, R = ' num2str(Rbead) 'nm'])
+            display(['Daldrop method y-direction: F = ' num2str(bead(1).PSD3force) 'pN, R = ' num2str(bead(1).Rfity) 'nm'])
+            display(['Daldrop method x-direction: F = ' num2str(bead(1).PSD2force) 'pN, R = ' num2str(bead(1).Rfitx) 'nm'])
+            display(['Labview implementation of Daldrop y-direction: F = 4.9115pN, R = 512nm'])
+            display(['Labview implementation of Daldrop x-direction: F = 4.9223pN, R = 514nm'])
         end
     end
 end

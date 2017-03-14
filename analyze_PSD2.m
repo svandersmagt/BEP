@@ -1,34 +1,28 @@
-function [MLfit, Fmag, Rfit] = analyze_PSD2(fs,mean_z,x,R)
+function [MLfit, Fmag, Rfit] = analyze_PSD2(fs,Ext,x,y,R,kT,eta)
 %%% Get an estimate of the force and the corner frequency
-kT = 4/1000; %pN um
-F_est = kT*mean_z/std(x-mean(x))^2; %pN
-f_c = calc_fcorner(F_est,mean_z); %Hz
+F_est = kT*Ext/std(y-mean(y))^2; %pN
+f_c = calc_fcorner(F_est,Ext,R,eta); %Hz
 fitgood = f_c < fs/2;
-L = mean_z * 1000; %nm
-R_est = R*1000; %nm
+L = Ext; %nm
+R_est = R; %nm
 
 %%% Add a line to x to make the length 2^integer, change to nm
 %%% Subtract the mean (offset)
 x(end+1) = x(1);
-x = x*1000; %nm
-%x = x - mean(x);
-N = length(x);
-logN2 = log(N)/log(2);
-
 
 %%% Calc PSD, find data points below 1/20 of f_c (the corner frequency)
 %%% Also throw away first point, which is merely mean(x)
 %%% NOTE: 1/20 is hard-coded, seems to work fine for all data
-[f, PSD, ~] = calc_powersp(x,fs);
+[f, PSD, ~] = calc_powerspblock(x,fs);
 f(1) = []; PSD(1) = [];
 goodinds = f > f_c(1)/20;
 
 %%% Max likelihood fit to PSD (using goodinds)
 %%% According to the model by Lansdorp and Saleh (RSI 2012)
-[par, ~, ~] = fminsearch(@(par) costfunction_PSD2fit(par(1),fs,f(goodinds),L,par(2),PSD(goodinds)), [F_est R_est]); %(Fmag,fs,f,L,R,PSD)
+[par, ~, ~] = fminsearch(@(par) costfunction_PSD2fit2(par(1),fs,f(goodinds),L,par(2),PSD(goodinds),kT,eta), [F_est R_est]); %(Fmag,fs,f,L,R,PSD)
 Fmag = par(1); Rfit = par(2); MLfit = [Fmag Rfit fitgood];
-PSDmodel = analytical_PSD2_overdamped_bead(Fmag,fs,f,L,Rfit);
-PSD2modelTest = analytical_PSD2_overdamped_bead(F_est,fs,f,L,R_est);
+PSDmodel = analytical_PSD2_overdamped_bead(Fmag,fs,f,L,Rfit,kT,eta);
+PSD2modelTest = analytical_PSD2_overdamped_bead(F_est,fs,f,L,R_est,kT,eta);
 
 % [par, ~, ~] = fmincon(@(par) costfunction_PSD2fit(par(1),fs,f(goodinds),L,par(2),PSD(goodinds)), [F_est R_est],[] ,[] ,[] ,[] , [F_est-20 R_est-500],[F_est+20 R_est+500]);
 % Fmag = par(1); Rfit = par(2); MLfit = [Fmag Rfit fitgood];

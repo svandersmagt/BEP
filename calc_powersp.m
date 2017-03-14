@@ -5,6 +5,12 @@ function [f,P,T] = calc_powersp(X,sampling_f)
 
 
 
+
+
+
+
+
+
 fNyq    =   sampling_f / 2;
 delta_t =   1 / sampling_f;
 

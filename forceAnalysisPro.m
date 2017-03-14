@@ -328,7 +328,7 @@ if 1
             %%% Use the script "analyze_one_trace" to determine the force for each trace
             for k=1:Nplat
                 
-                [Ext, Fx_real, Fy_real, PSDfit, PSDforce, fcorner, MLfit, MLforce, Rfit]=...
+                [Ext, Fx_real, Fy_real, PSDfit, PSDforce, fcorner, MLfit, MLforce, Rfit, MLfit2, MLforce2, Rfit2]=...
                     analyze_one_trace2(bead(i).time(plat(k).first:plat(k).last),...
                     bead(i).x(plat(k).first:plat(k).last),... 
                     bead(i).y(plat(k).first:plat(k).last),...
@@ -345,6 +345,9 @@ if 1
                 PSD2fit = MLfit;
                 bead(i).PSD2force(k) = MLforce;
                 bead(i).Rfit(k) = Rfit;
+                PSD3fit = MLfit2;
+                bead(i).PSD3force(k) = MLforce2;
+                bead(i).Rfit3(k) = Rfit2;
                 
                 pause;
             end

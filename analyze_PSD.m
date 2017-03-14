@@ -1,12 +1,12 @@
-function [MLfit, MLforce, fcorner] = analyze_PSD(fs,mean_z,x)
+function [MLfit, MLforce, fcorner] = analyze_PSD(fs,Ext,x,kT,R,eta)
 % Analyzes the Power Spectral Density of a single trace
 % and runs fits
 %
 % Input:
 % - fs: measurement frequency in Hz
-% - mean_z: mean extension in um
-% - x: data trace in um
-% - plotflag: to plot set 1 - to not plot set 0
+% - mean_z: mean extension in nm
+% - x: data trace in nm
+% - kT in pN nm
 %
 % Output:
 % - MLfit: (1) alpha in pN s/nm (2) kappa in pN/nm (3) good/bad (1/0)
@@ -14,41 +14,37 @@ function [MLfit, MLforce, fcorner] = analyze_PSD(fs,mean_z,x)
 % - fcorner: corner frequency (according to Lorentzian fit) in Hz
 
 %%% Get an estimate of the force and the corner frequency
-kT = 4/1000; %pN um
-F_est = kT*mean_z/std(x-mean(x))^2; %pN
-f_c = calc_fcorner(F_est,mean_z); %Hz
+F_est = kT*Ext/std(x)^2; %pN
+f_c = calc_fcorner(F_est,Ext,R,eta); %Hz
 fitgood = f_c < fs/2;
 
 %%% Add a line to x to make the length 2^integer, change to nm
 %%% Subtract the mean (offset)
 x(end+1) = x(1);
-x = x*1000; %nm
-%x = x - mean(x);
 N = length(x);
 logN2 = log(N)/log(2);
 
 %%% Calc PSD, find data points below 1/20 of f_c (the corner frequency)
 %%% Also throw away first point, which is merely mean(x)
 %%% NOTE: 1/20 is hard-coded, seems to work fine for all data
-[f, PSD, ~] = calc_powersp(x,fs);
+[f, PSD, ~] = calc_powerspblock(x,fs);
 f(1) = []; PSD(1) = [];
 goodinds = f > f_c(1)/20;
 
 %%% Max likelihood fit to PSD (using goodinds)
 %%% According to the model by Lansdorp and Saleh (RSI 2012)
 alpha_0 = 1E-5; kappa_0 = 4E-4;
-[par, res, ef] = fminsearch(@(par) costfunction_PSDfit(f(goodinds), par(1), par(2),fs, PSD(goodinds)), [alpha_0 kappa_0]);
+[par, ~, ~] = fminsearch(@(par) costfunction_PSDfit(f(goodinds), par(1), par(2),fs, PSD(goodinds),kT), [alpha_0 kappa_0]);
 alpha = par(1); kappa = abs(par(2)); MLfit = [alpha kappa fitgood];
-PSDmodel = analytical_PSD_overdamped_bead(alpha,kappa,fs,f);
-MLforce = kappa*1000*mean_z;
+PSDmodel = analytical_PSD_overdamped_bead(alpha,kappa,fs,f,kT);
+MLforce = kappa*Ext;
 
 %%% Fit a Lorentzian to find the corner frequency (using the 'goodinds')
 fcorner_0 =1; Amp_0 = 10^(-2);
-[par, res, ef] = fminsearch(@(par) norm(PSD(goodinds) - (par(1)*((1+(f(goodinds)/par(2)).^(2)).^(-1)))), [Amp_0 fcorner_0]);
+[par, ~, ~] = fminsearch(@(par) norm(PSD(goodinds) - (par(1)*((1+(f(goodinds)/par(2)).^(2)).^(-1)))), [Amp_0 fcorner_0]);
 fcorner = par(2); Amp  = par(1);
 fcorner = abs(fcorner);
 Lorentzianfit =  (Amp*(1+(f/fcorner).^(2)).^(-1));
-[i ii] = min(abs(f-fcorner));
 
 %PSD2modelTest = analytical_PSD2_overdamped_bead(MLforce,fs,f,mean_z,1400);
 
